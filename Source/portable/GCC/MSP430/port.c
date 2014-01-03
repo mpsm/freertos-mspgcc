@@ -311,13 +311,13 @@ portBASE_TYPE xPortStartScheduler( void )
 	TACTL = 0;
 	__delay_cycles(50);
 
-	/* Count continuously using ACLK clearing the initial counter. */
-	TACTL = TASSEL_1 | MC_2 | TACLR;
+	/* Count up using ACLK clearing the initial counter. */
+	TACTL = TASSEL_1 | MC_1 | TACLR;
 
 #endif /* configMSP430_APP_CONTROLS_TA0 */
 
 	/* Set the compare match value according to the tick rate we want. */
-	TACCR0 = TAR + portACLK_FREQUENCY_HZ / configTICK_RATE_HZ;
+	TACCR0 = portACLK_FREQUENCY_HZ / configTICK_RATE_HZ;
 
 	/* Enable the interrupts. */
 	TACCTL0 = CCIE;
@@ -427,9 +427,6 @@ vPortYieldFromISR( void )
 	{
 		/* Save the context of the interrupted task. */
 		portSAVE_CONTEXT();
-
-		/* Wake again for the next tick */
-		TACCR0 += portACLK_FREQUENCY_HZ / configTICK_RATE_HZ;
 		
 		/* Increment the tick count then switch to the highest priority task
 		that is ready to run. */
@@ -450,9 +447,7 @@ vPortYieldFromISR( void )
 	__attribute__( ( __interrupt__( TIMERA0_VECTOR ) ) )
 	static void prvTickISR( void )
 	{
-		/* Wake again for the next tick */
-		TACCR0 += portACLK_FREQUENCY_HZ / configTICK_RATE_HZ;
-		
+		/* Update tick value */
 		vTaskIncrementTick();
 	}
 #endif
